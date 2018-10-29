@@ -1,0 +1,246 @@
+<form>
+  <label>Access Logs</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="date-range">
+      <label></label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="multiselect" token="status" searchWhenChanged="true">
+      <label>Status</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>status=</valuePrefix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>status</fieldForLabel>
+      <fieldForValue>status</fieldForValue>
+      <search>
+        <query>`marklogic_access`
+          | stats count by status</query>
+        <earliest>$date-range.earliest$</earliest>
+        <latest>$date-range.latest$</latest>
+      </search>
+    </input>
+    <input type="multiselect" token="method" searchWhenChanged="true">
+      <label>Method</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>method=</valuePrefix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>method</fieldForLabel>
+      <fieldForValue>method</fieldForValue>
+      <search>
+        <query>`marklogic_access`
+          |  stats count by method</query>
+        <earliest>$date-range.earliest$</earliest>
+        <latest>$date-range.latest$</latest>
+      </search>
+    </input>
+    <input type="multiselect" token="server_port" searchWhenChanged="true">
+      <label>Port</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>server_port=</valuePrefix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>server_port</fieldForLabel>
+      <fieldForValue>server_port</fieldForValue>
+      <search>
+        <query>`marklogic_access`
+          |  stats count by server_port</query>
+        <earliest>$date-range.earliest$</earliest>
+        <latest>$date-range.latest$</latest>
+      </search>
+    </input>
+    <input type="multiselect" token="host" searchWhenChanged="true">
+      <label>Host</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>host=</valuePrefix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>`marklogic_access`
+          |  stats count by host</query>
+        <earliest>$date-range.earliest$</earliest>
+        <latest>$date-range.latest$</latest>
+      </search>
+    </input>
+    <input type="text" token="search" searchWhenChanged="true">
+      <label>search</label>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>Successful Requests</title>
+        <search>
+          <query>`marklogic_access`  $status$  $method$ $host$ $server_port$
+            |  where
+            status&lt;400 | timechart count as Errors  |  accum Errors</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x555","0x53a051"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Client Errors</title>
+        <search>
+          <query>`marklogic_access`  $status$  $method$ $host$ $server_port$
+            | where
+            status&gt;=400 AND status &lt;=500 | timechart count as Errors  |  accum Errors</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0xf8be34"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trendColorInterpretation">inverse</option>
+        <option name="trendDisplayMode">absolute</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Server Errors</title>
+        <search>
+          <query>`marklogic_access`  $status$  $method$ $host$ $server_port$
+            |  where
+            status&gt;=500 | timechart count as Errors  |  accum Errors</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">none</option>
+        <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trendColorInterpretation">inverse</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Traffic By Port</title>
+        <search>
+          <query>`marklogic_access` $status$ $method$ $host$ $server_port$
+            |  timechart count by server_port usenull=f</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+          <sampleRatio>1</sampleRatio>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">-90</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.abbreviation">none</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.abbreviation">none</option>
+        <option name="charting.axisY.scale">log</option>
+        <option name="charting.axisY2.abbreviation">none</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.bubbleMaximumSize">50</option>
+        <option name="charting.chart.bubbleMinimumSize">10</option>
+        <option name="charting.chart.bubbleSizeBy">area</option>
+        <option name="charting.chart.nullValueMode">connect</option>
+        <option name="charting.chart.showDataLabels">none</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">none</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.layout.splitSeries.allowIndependentYRanges">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.mode">standard</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="charting.lineWidth">2</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">0</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">medium</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Traffic by host</title>
+        <search>
+          <query>`marklogic_access`  $status$  $method$ $host$ $server_port$
+            |  timechart count by host usenull=f</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top URI paths</title>
+        <search>
+          <query>`marklogic_access`  $status$  $method$ $host$ $server_port$
+            |  stats sparkline count by uri_path method status user server_port
+            |  sort -count</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="dataOverlayMode">none</option>
+        <option name="drilldown">row</option>
+        <option name="percentagesRow">false</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="totalsRow">false</option>
+      </table>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Top clients</title>
+        <search>
+          <query>`marklogic_access`  $status$  $method$ $host$ $server_port$
+            | stats sparkline count by clientip user useragent server_port
+            |  sort -count</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

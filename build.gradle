@@ -1,0 +1,184 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+import com.marklogic.client.DatabaseClient
+import sun.misc.BASE64Encoder
+
+plugins {
+    id 'base'
+    id "com.marklogic.ml-gradle" version "3.9.0"
+}
+
+class GenerateLookups extends com.marklogic.gradle.task.MarkLogicTask {
+    String modulesDir = 'src/main/ml-modules/'
+    String featureQuery = new File("${modulesDir}get-marklogic-features.xqy").getText('UTF-8')
+    String errorQuery = new File("${modulesDir}get-marklogic-error-codes.xqy").getText('UTF-8')
+
+    String lookupsDir = 'src/main/resources/lookups/'
+    String featureFile = 'marklogic_feature.csv'
+    String errorFile = 'marklogic_error.csv'
+
+    @TaskAction
+    void serverEval() {
+        DatabaseClient client = newClient()
+        try {
+            
+            String featureResult = client.newServerEval().xquery(featureQuery).evalAs(String.class)
+            
+            //snag the first column, for the list of MarkLogic features
+            def features = []
+            featureResult.splitEachLine(",") { fields ->
+                if (fields[0] != 'feature') {
+                    features.add(fields[0])
+                }
+            }
+
+            if (featureResult != null) {
+                System.out.println('parsed ' + features.size + ' features')
+                new File(lookupsDir + featureFile).text = featureResult
+
+                // now, fetch the error codes for each of the features
+                String errorResult = client.newServerEval()
+                        .xquery(errorQuery)
+                        .addVariable("FEATURES", features.unique().join(','))
+                        .evalAs(String.class)
+
+                if (errorResult != null && errorResult.split("\r\n|\r|\n").length > 2) {
+                    System.out.println('parsed ' + errorResult.split("\r\n|\r|\n").length + ' error codes')
+                    new File(lookupsDir + errorFile).text = errorResult
+                } else {
+                    ant.fail('Could not generate MarkLogic error_code lookup!!')
+                }
+
+            } else {
+                ant.fail('Could not generate MarkLogic feature and error_code lookups!!')
+            }
+        } catch (Exception e){
+            ant.fail('Could not generate MarkLogic feature and error_code lookups!!' + '\n' + e.message)
+        } finally {
+            System.out.println('done generating lookups')
+            client.release()
+        }
+    }
+}
+
+task generateLookups(type: GenerateLookups) {}
+assemble.dependsOn(generateLookups)
+build.mustRunAfter generateLookups
+
+task tar(type: Tar) {
+    archiveName = "${appName}.spl"
+    compression = Compression.GZIP
+    destinationDir project.buildDir
+    from(project.file('src/main/resources')) {
+        include '**/*.png'
+    }
+    from(project.file('src/main/resources')) {
+        exclude '**/*.png'
+        filter(ReplaceTokens, tokens: [VERSION: project.version])
+    }
+    into "${appName}"
+}
+
+build.dependsOn tar
+tar.mustRunAfter generateLookups
+
+task clear(type: Delete) {
+    def app_home = "${splunk_home}/etc/apps/${appName}"
+    def db_home =  "${splunk_home}/var/lib/splunk/${appName}"
+    delete db_home, app_home
+}
+
+def buildAppInspectConnection(urlString, method) {
+    def url = new URL(urlString)
+    def connection = (HttpURLConnection)url.openConnection()
+    connection.setRequestMethod(method)
+    connection.setRequestProperty("Accept", "application/json")
+    connection.setRequestProperty("Cache-Control", "no-cache")
+    connection
+}
+
+def addAuthorizationToken(connection, token){
+    connection.setRequestProperty("Authorization", "bearer " + token)
+    connection
+}
+
+def appInpsectLogin() {
+    def connection = buildAppInspectConnection( "https://api.splunk.com/2.0/rest/login/splunk", "GET")
+    BASE64Encoder enc = new sun.misc.BASE64Encoder();
+    String userpassword = project.appInspectUsername + ":" + project.appInspectPassword;
+    String encodedAuthorization = enc.encode( userpassword.getBytes() );
+    connection.setRequestProperty("Authorization", "Basic "+ encodedAuthorization);
+    new groovy.json.JsonSlurper().parse(connection.getInputStream())
+}
+
+def appInspectSubmit(token) {
+    def connection = buildAppInspectConnection(appInspectBaseUri + "v1/app/validate", "POST")
+    addAuthorizationToken(connection, token)
+
+    connection.setDoOutput(true)
+    String attachmentFileName = "${appName}.spl"
+    String crlf = "\r\n";
+    String twoHyphens = "--";
+    String boundary =  "*****";
+    connection.setRequestProperty("Content-Type", "multipart/form-data;boundary=" + boundary);
+    new DataOutputStream(connection.getOutputStream()).withCloseable(){request ->
+        request.writeBytes(twoHyphens + boundary + crlf);
+        request.writeBytes("Content-Disposition: form-data; name=\"app_package\"; filename=\"" + attachmentFileName + "\"" + crlf);
+        request.writeBytes(crlf);
+        request.write(new File("build/" + attachmentFileName).bytes)
+        request.writeBytes(crlf);
+        request.writeBytes(twoHyphens + boundary + twoHyphens + crlf);
+        request.flush()
+    }
+
+    new groovy.json.JsonSlurper().parse(connection.getInputStream())
+}
+
+def getAppInspectStatus(authToken,  id) {
+    def connection = buildAppInspectConnection(appInspectBaseUri + "v1/app/validate/status/" + id, "GET")
+    addAuthorizationToken(connection,authToken)
+    new groovy.json.JsonSlurper().parse(connection.getInputStream())
+}
+
+def getAppInspectReport(authToken, id, format) {
+    def connection = buildAppInspectConnection(appInspectBaseUri + "v1/app/report/" + id, "GET")
+    addAuthorizationToken(connection, authToken)
+    if ( "html".equalsIgnoreCase(format) ) {
+        connection.setRequestProperty("Content-type", "text/html")
+    }//else default response format is JSON
+    connection.getInputStream()
+}
+
+task appInspect() {
+    doLast() {
+        def login = appInpsectLogin()
+        def token = login.data.token
+        if (token) {
+            System.out.println("Login token: " + token)
+
+            def requestId = appInspectSubmit(token).request_id
+            def response
+            def status = "PROCESSING"
+
+            while ("PROCESSING".equals(status) || "PREPARING".equals(status)) {
+                sleep(5000)
+                response = getAppInspectStatus(token, requestId)
+                status = response.status
+                System.out.println("Status: " + status)
+            }
+
+            new FileOutputStream("build/report.html").withCloseable { output ->
+                output.write(getAppInspectReport(token, requestId, "html").bytes)
+            }
+            def report = new groovy.json.JsonSlurper().parse(getAppInspectReport(token, requestId, "json"))
+            if (report.summary.error + report.summary.failure > 0) {
+                ant.fail("Validation errors reported. Review the summary report: build/report.html")
+            } else {
+                System.out.println("Success!")
+            }
+        } else {
+            ant.fail('Could not obtain a Splunk login token!!')
+        }
+    }
+}
+appInspect.mustRunAfter tar
+build.dependsOn(appInspect)

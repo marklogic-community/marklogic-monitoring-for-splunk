@@ -1,0 +1,105 @@
+<form>
+  <label>Backups</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="date-range" searchWhenChanged="true">
+      <label></label>
+      <default>
+        <earliestTime>-30d</earliestTime>
+        <latestTime></latestTime>
+      </default>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <chart>
+        <title>Completed Backups</title>
+        <search>
+          <query>`marklogic_error` ( "Finished") database backup | rex field=log_message "(?&lt;backup_action&gt;Starting|Finished).*?(?&lt;backup_label&gt;(\d+-forest) database( incremental)? backup to.*?(?&lt;backup_path&gt;/[^/]+/))\d+.\d+" | timechart count by backup_label</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Backup Durations</title>
+        <search>
+          <query>`marklogic_error` ("Starting" OR "Finished") database backup | rex field=log_message "(?&lt;backup_action&gt;Starting|Finished).*?(?&lt;backup_label&gt;(\d+-forest) database( incremental)? backup to.*?(?&lt;backup_path&gt;/[^/]+/))\d+.\d+" | transaction jobid | chart values(duration) over _time by backup_label</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.text">Duration</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">bottom</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Backup Errors</title>
+        <search>
+          <query>`marklogic_error` error_code="XDMP-BACKUP" log_level="Error"</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.axisLabelsX.majorLabelStyle.overflowMode">ellipsisNone</option>
+        <option name="charting.axisLabelsX.majorLabelStyle.rotation">0</option>
+        <option name="charting.axisTitleX.visibility">visible</option>
+        <option name="charting.axisTitleY.visibility">visible</option>
+        <option name="charting.axisTitleY2.visibility">visible</option>
+        <option name="charting.axisX.scale">linear</option>
+        <option name="charting.axisY.scale">linear</option>
+        <option name="charting.axisY2.enabled">0</option>
+        <option name="charting.axisY2.scale">inherit</option>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.sliceCollapsingThreshold">0.01</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.chart.style">shiny</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="charting.legend.labelStyle.overflowMode">ellipsisMiddle</option>
+        <option name="charting.legend.placement">right</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <event>
+        <title>Backup Events By Jobid</title>
+        <search>
+          <query>`marklogic_error` backup jobid | transaction jobid</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="list.drilldown">none</option>
+        <option name="refresh.display">progressbar</option>
+      </event>
+    </panel>
+  </row>
+</form>

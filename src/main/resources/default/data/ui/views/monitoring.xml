@@ -1,0 +1,303 @@
+<form>
+    <label>Monitoring</label>
+    <fieldset submitButton="false" autoRun="true">
+        <input type="time" token="date-range" searchWhenChanged="true">
+            <label></label>
+            <default>
+                <earliest>-24h@h</earliest>
+                <latest>now</latest>
+            </default>
+        </input>
+    </fieldset>
+    <row>
+        <panel>
+            <single>
+                <title>Informational Severity Errors</title>
+                <search>
+                    <query>`marklogic_error` severity = "informational" |   timechart count as Errors
+                        |  accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="colorMode">block</option>
+                <option name="drilldown">all</option>
+                <option name="rangeColors">["0x53a051","0x006d9c"]</option>
+                <option name="rangeValues">[0]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="useColors">1</option>
+            </single>
+        </panel>
+        <panel>
+            <single>
+                <title>Medium Severity Errors</title>
+                <search>
+                    <query>`marklogic_error` severity = "medium" |   timechart count as Errors
+                        |  accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="colorMode">block</option>
+                <option name="drilldown">all</option>
+                <option name="rangeColors">["0x53a051","0xf8be34","0xf8be34"]</option>
+                <option name="rangeValues">[0,70]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="useColors">1</option>
+            </single>
+        </panel>
+        <panel>
+            <single>
+                <title>High Severity Errors</title>
+                <search>
+                    <query>`marklogic_error` severity = "high" |   timechart count as Errors
+                        |  accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="colorBy">value</option>
+                <option name="colorMode">block</option>
+                <option name="drilldown">all</option>
+                <option name="rangeColors">["0x53a051","0xf1813f","0xdc4e41"]</option>
+                <option name="rangeValues">[0,100]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="trendColorInterpretation">inverse</option>
+                <option name="useColors">1</option>
+            </single>
+        </panel>
+        <panel>
+            <single>
+                <title>Critical Severity Errors</title>
+                <search>
+                    <query>`marklogic_error` severity = "critical" | timechart count as Errors
+                        |  accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="colorBy">trend</option>
+                <option name="colorMode">block</option>
+                <option name="drilldown">all</option>
+                <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+                <option name="rangeValues">[0]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="trellis.enabled">0</option>
+                <option name="trellis.size">medium</option>
+                <option name="trendColorInterpretation">inverse</option>
+                <option name="useColors">1</option>
+            </single>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Exceptions</title>
+                <search>
+                    <query>`marklogic_error` error_code=* NOT error_code=XDMP-INM*  |  timechart count by error_code usenull=f</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>10m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+                <option name="charting.axisY.scale">log</option>
+                <option name="charting.chart">column</option>
+                <option name="charting.drilldown">all</option>
+                <option name="height">237</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <chart>
+                <title>Traffic by port</title>
+                <search>
+                    <query>`marklogic_access` |  timechart count by server_port</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+                <option name="charting.axisY.scale">log</option>
+                <option name="charting.chart">line</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+        <panel>
+            <chart>
+                <title>Traffic by host</title>
+                <search>
+                    <query>`marklogic_access` |  timechart count(server_port) by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+                <option name="charting.chart">area</option>
+                <option name="charting.chart.stackMode">stacked</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <title>Performance: inefficient query or resource limit exceeded</title>
+                <search>
+                    <query>`marklogic_error` error_code="XDMP-LISTCACHEFULL" OR error_code="XDMP-EXPNTREECACHEFULL" OR error_code="SVC-MEMALLOC" | stats count by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="drilldown">cell</option>
+                <option name="refresh.display">progressbar</option>
+            </table>
+        </panel>
+        <panel>
+            <chart>
+                <title>Deadlock or Timeout</title>
+                <search>
+                    <query>`marklogic_error` error_code="XDMP-DEADLOCK" OR error_code="SVC-EXTIME" | timechart count(eval(error_code="XDMP-DEADLOCK")) as Deadlock, count(eval(error_code="SVC-EXTIME")) as "Time limit exceeded" by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+                <option name="charting.axisY.scale">linear</option>
+                <option name="charting.chart">line</option>
+                <option name="charting.drilldown">none</option>
+                <option name="charting.legend.placement">bottom</option>
+                <option name="height">274</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <title>Server start/stop/restart</title>
+                <search>
+                    <query>`marklogic_error` "Notice: Stopping" OR "Notice: Starting" OR "Notice: Restarting" NOT backup | chart count(eval("Notice: Stopping")) as Stop, count(eval("Notice: Starting")) as Start, count(eval("Notice: Restarting")) as Restart by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="drilldown">cell</option>
+                <option name="refresh.display">progressbar</option>
+            </table>
+        </panel>
+        <panel>
+            <table>
+                <title>Forest Mount Error</title>
+                <search>
+                    <query>`marklogic_error` "Info: Unmounted forest" OR "Info: Mounted forest" | stats count(eval("Info: Unmounted forest")) as cntUnmounted, count(eval("Info: Mounted forest")) as cntMounted by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="rowNumbers">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+        <panel>
+            <chart>
+                <title>Backup Error</title>
+                <search>
+                    <query>`marklogic_error` log_level="Error" "ScheduledBackupTask"   | timechart count  by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="charting.chart">column</option>
+                <option name="refresh.display">progressbar</option>
+            </chart>
+        </panel>
+        <panel>
+            <table>
+                <title>Disk Full / Merge Issues</title>
+                <search>
+                    <query>`marklogic_error` "No space left on device" OR error_code="XDMP-MERGESPACE"  | chart count by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="count">10</option>
+                <option name="drilldown">cell</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <link target="_blank">https://help.marklogic.com/Knowledgebase/Article/View/49/16/recovering-from-low-disk-space</link>
+                </drilldown>
+            </table>
+        </panel>
+        <panel>
+            <chart>
+                <title>Clock Skew</title>
+                <search>
+                    <query>`marklogic_error` "Excessive clock skew detected" OR error_code="XDMP-CLOCKSKEW" | timechart count by host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="charting.axisTitleX.visibility">collapsed</option>
+                <option name="charting.axisTitleY.visibility">collapsed</option>
+                <option name="charting.axisTitleY2.visibility">collapsed</option>
+                <option name="charting.chart">column</option>
+                <option name="charting.drilldown">all</option>
+                <option name="charting.legend.placement">none</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="trellis.enabled">1</option>
+                <option name="trellis.size">small</option>
+                <drilldown>
+                    <link target="_blank">https://help.marklogic.com/Knowledgebase/Article/View/24/0/synchronizing-system-clocks-in-a-cluster</link>
+                </drilldown>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <table>
+                <title>Lagging Operations</title>
+                <search>
+                    <query>`marklogic_error` (severity="medium" OR severity="high" OR severity="critical") AND ("Canary thread" OR "journal frame took" OR "fast query timestamp") | table _time,severity,log_message,host |  sort -date, -_time</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="count">10</option>
+                <option name="drilldown">cell</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <link target="_blank">https://help.marklogic.com/knowledgebase/article/View/437/0/warning-messages-for-lagging-operations</link>
+                </drilldown>
+            </table>
+        </panel>
+        <panel>
+            <table>
+                <title>Hung</title>
+                <search>
+                    <query>`marklogic_error` "Warning: Hung" OR "Debug: Hung"|  table _time,severity,log_message,host |  sort -date, -time</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="wrap">true</option>
+                <drilldown>
+                    <link target="_blank">https://help.marklogic.com/knowledgebase/article/View/35/16/hung-messages-in-the-errorlog</link>
+                </drilldown>
+            </table>
+        </panel>
+        <panel>
+            <table>
+                <title>Socket Connect Error</title>
+                <search>
+                    <query>`marklogic_error` error_code="SVC-SOCCONN" | table _time,severity,log_message,host</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                </search>
+                <option name="count">10</option>
+                <option name="dataOverlayMode">none</option>
+                <option name="drilldown">cell</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="rowNumbers">false</option>
+                <option name="wrap">true</option>
+            </table>
+        </panel>
+    </row>
+</form>

@@ -1,0 +1,36 @@
+feature,feature_description
+ADMIN,Admin Interface/API
+ALERT,"Alerting API, from the XQuery library module alert.xqy"
+CPF,Content Processing Framework
+DBG,"Debugging, available only when debug level logging is enabled"
+DHF,Microsoft Office document converter
+DLS,Library Services
+FLEXREP,Flexible Replication
+HADOOP,MarkLogic Server integrations with Hadoop
+ICN,PDF document converter
+JS,Server-Side JavaScript
+MANAGE,REST Management API
+OI,Stellent Outside In document converter
+OPTIC,Optic API
+PKG,Packaging features of the Configuration Manager
+PKI,"Public Key Infrastructure in support of SSL, from the XQuery library module pki.xqy"
+PROF,Profiling
+RDT,Redaction
+REST,MarkLogic REST API and rest:* functions
+RESTAPI,MarkLogic REST API
+SEARCH,"Search API, from the XQuery library module search.xqy"
+SEC,Security
+SER,XML Serialization
+SQL,SQL Data Modeling and ODBC interface
+SSL,SSL API
+SVC,"Mark Logic Server service layer, usually related to OS or system and network protocol errors."
+TDE,Template Driven Extraction
+TEMPORAL,Temporal API
+THSR,Thesaurus API
+TRGR,Triggers
+TS,Tiered Storage
+VIEW,SQL Data Modeling
+X509,"X.509 certificates, in support of SSL"
+XDMP,MarkLogic Server core
+XI,XInclude modular document management
+XSLT,XSLT transformation.

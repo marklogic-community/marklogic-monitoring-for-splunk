@@ -1,0 +1,192 @@
+<form theme="light">
+  <label>Audit Logs</label>
+  <fieldset submitButton="false" autoRun="true">
+    <input type="time" token="date-range" searchWhenChanged="true">
+      <label>Date range</label>
+      <default>
+        <earliest>-24h@h</earliest>
+        <latest>now</latest>
+      </default>
+    </input>
+    <input type="dropdown" token="success" searchWhenChanged="true">
+      <label>Success</label>
+      <choice value="*">All</choice>
+      <choice value="true">true</choice>
+      <choice value="false">false</choice>
+      <prefix>success=</prefix>
+      <default>*</default>
+    </input>
+    <input type="multiselect" token="event" searchWhenChanged="true">
+      <label>Event</label>
+      <choice value="*">All</choice>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <initialValue>*</initialValue>
+      <valuePrefix>event=</valuePrefix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>event</fieldForLabel>
+      <fieldForValue>event</fieldForValue>
+      <search>
+        <query>`marklogic_audit` | stats count by event</query>
+        <earliest>$date-range.earliest$</earliest>
+        <latest>$date-range.latest$</latest>
+      </search>
+    </input>
+    <input type="multiselect" token="user" searchWhenChanged="true">
+      <label>User</label>
+      <choice value="*">All</choice>
+      <default>*</default>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>user=</valuePrefix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>user</fieldForLabel>
+      <fieldForValue>user</fieldForValue>
+      <search>
+        <query>`marklogic_audit` | stats count by user</query>
+        <earliest>$date-range.earliest$</earliest>
+        <latest>$date-range.latest$</latest>
+      </search>
+    </input>
+    <input type="text" token="search" searchWhenChanged="true">
+      <label>Search</label>
+      <default></default>
+      <initialValue>*</initialValue>
+    </input>
+  </fieldset>
+  <row>
+    <panel>
+      <single>
+        <title>successful events</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$| where success="true" |      timechart count as Success
+            |  accum Success</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="colorBy">value</option>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x555","0x53a051"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>failure events</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$| where success="false" |    timechart count as Failure
+            |  accum Failure</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="colorMode">block</option>
+        <option name="drilldown">all</option>
+        <option name="rangeColors">["0x555","0xdc4e41"]</option>
+        <option name="rangeValues">[0]</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="useColors">1</option>
+      </single>
+    </panel>
+    <panel>
+      <chart>
+        <title>By event</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | stats count by event</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>By user</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | stats count by user | sort -count</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>By database</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | stats count by database</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.drilldown">all</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Failure Events</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$| where success="false" | timechart count by event</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.axisTitleX.visibility">collapsed</option>
+        <option name="charting.axisTitleY.visibility">collapsed</option>
+        <option name="charting.axisTitleY2.visibility">collapsed</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">1</option>
+        <option name="charting.legend.placement">none</option>
+        <option name="height">205</option>
+        <option name="refresh.display">progressbar</option>
+        <option name="trellis.enabled">1</option>
+        <option name="trellis.scales.shared">1</option>
+        <option name="trellis.size">small</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <chart>
+        <title>Events</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | timechart count by event</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="charting.axisY.scale">log</option>
+        <option name="charting.chart">line</option>
+        <option name="charting.chart.nullValueMode">gaps</option>
+        <option name="charting.chart.stackMode">default</option>
+        <option name="charting.drilldown">all</option>
+        <option name="charting.layout.splitSeries">0</option>
+        <option name="refresh.display">progressbar</option>
+      </chart>
+    </panel>
+  </row>
+  <row>
+    <panel>
+      <table>
+        <title>Events</title>
+        <search>
+          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | table _time,user,event,expr,success,database,user</query>
+          <earliest>$date-range.earliest$</earliest>
+          <latest>$date-range.latest$</latest>
+        </search>
+        <option name="count">10</option>
+        <option name="drilldown">cell</option>
+        <option name="refresh.display">progressbar</option>
+      </table>
+    </panel>
+  </row>
+</form>

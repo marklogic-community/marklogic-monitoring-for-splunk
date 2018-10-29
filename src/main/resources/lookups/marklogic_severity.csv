@@ -1,0 +1,13 @@
+log_level,severity,severity_threshold
+Finest,informational,10000
+Finer,informational,15000
+Fine,informational,20000
+Debug,informational,30000
+Config,informational,35000
+Info,informational,40000
+Notice,medium,50000
+Warning,medium,60000
+Error,high,70000
+Critical,critical,90000
+Alert,critical,100000
+Emergency,critical,120000
