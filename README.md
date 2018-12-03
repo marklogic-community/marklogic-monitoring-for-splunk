@@ -1,7 +1,7 @@
-# MarkLogic Monitoring App for Splunk
+# MarkLogic Monitoring for Splunk
 
-MarkLogic Monitoring app for Splunk provides configurations and dashboards intended to make
-monitoring and analyzing MarkLogic Error, Access, and Audit logs in Splunk easier.
+MarkLogic Monitoring for Splunk provides configurations and pre-built dashboards that deliver real-time visibility into Error, Access, and Audit log events 
+ to monitor and analyze MarkLogic logs with Splunk.
 
 ![Monitoring dashboard](src/main/resources/appserver/static/screenshot.png "Monitoring dashboard")
 
@@ -9,35 +9,56 @@ monitoring and analyzing MarkLogic Error, Access, and Audit logs in Splunk easie
 ## Installation
 
 Install this app the same way you would install any Splunk app:
-- automatically from [SplunkBase](https://splunkbase.splunk.com/app/TODO)(**TODO update link if/when added to Splunkbase**) 
-through *Browse more apps*
-- manually: download the *marklogic-monitoring.spl* file and install it in your Splunk instance
+<!-- 
+- Automatically from [SplunkBase](https://splunkbase.splunk.com/app/XXXX) 
+through *Browse more apps* 
+-->
+- Manually: download the *marklogic.spl* file and install it in your Splunk instance
 
-## Building
 
-To build the MarkLogic Monitoring app from source, clone the Github repository:
+## Configuration
+
+The MarkLogic Monitoring app has *source* and *sourcetype* configurations with field extractions for the MarkLogic Error, Access, and Audit logs.
+
+[Forward your MarkLogic logs to Splunk](http://docs.splunk.com/Documentation/Forwarder/latest/Forwarder/HowtoforwarddatatoSplunkEnterprise), 
+and consider whether you want to [create a separate index](http://docs.splunk.com/Documentation/Splunk/latest/Indexer/Setupmultipleindexes) for MarkLogic log events.
+
+#### Inputs
+Below are example stanzas that can be applied to your *inputs.conf* in order to monitor MarkLogic log events and send to a *marklogic* Splunk index.
+
+    #### Linux path for MarkLogic logs
+    [monitor:///var/opt/MarkLogic/Logs]
+    disabled = 0
+    whitelist = .*Log\.txt$
+    #index = marklogic
     
-    git clone https://project.marklogic.com/repo/scm/intel/splunk-marklogic-monitoring.git
-
-and run this command from the top-level folder:
-
-    ./gradlew build -x appInspect
-
-In order to validate the application using the Splunk [AppInspector](http://dev.splunk.com/view/appinspect/SP-CAAAFAR), you will need to specify your Splunk credentials. You can provide them as commandline switches:
-
-    gradlew build -PappInspectorUsername=myUsername -PappInspectorPassword=myPassword
-
-or you can add the properties to your ~/.gradle/gradle.properties
-
-    appInspectorUsername=myUsername
-    appInspectorPassword=myPassword
+    #### Mac OS X path for MarkLogic logs
+    [monitor://*/MarkLogic/Data/Logs]
+    disabled = 0
+    whitelist = .*Log\.txt$
+    #index = marklogic
     
-and then you can run the build with validation:
+    #### Windows path for MarkLogic logs
+    [monitor://*\MarkLogic\Data\Logs]
+    disabled = 0
+    whitelist = .*Log\.txt$
+    #index = marklogic
 
-    ./gradlew build    
+### Macros
+The MarkLogic Monitoring dashboard queries make use of *macros* in order to construct base queries that target 
+MarkLogic log events from the MarkLogic sourcetypes for Error, Access, and Audit logs
 
-## Questions
-Contact **Mads Hansen** [mads.hansen@marklogic.com](mailto:mads.hansen@marklogic.com)
+- *marklogic_index* - search criteria limited to `(index=main OR index=marklogic)`
+- *marklogic_access* - restricts searches to the MarkLogic *_AccessLog.txt events
+- *marklogic_audit* - restricts searches to the MarkLogic AuditLog.txt events
+- *marklogic_error* - restricts searches to the *ErrorLog.txt events
+
+You can change these by modifying the *marklogic*, *marklogic_index*, *marklogic_error*, *marklogic_access*, 
+and *marklogic_audit* macros under *Settings > Advanced search > Search macros*.
+   
+
+## Getting Help
+Submit issues or feature requests at https://github.com/marklogic-community/marklogic-monitoring-for-splunk/issues 
 
 ## License
 

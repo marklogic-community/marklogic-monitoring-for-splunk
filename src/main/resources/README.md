@@ -1,14 +1,13 @@
-# MarkLogic Monitoring App
+# MarkLogic Monitoring for Splunk
 
-MarkLogic Monitoring app for Splunk provides insights into your MarkLogic cluster. 
-The app includes pre-built dashboards that deliver real-time visibility into Error, Access, and Audit log events 
- that facilitate monitoring and analysis of MarkLogic logs.
+MarkLogic Monitoring for Splunk provides configurations and pre-built dashboards that deliver real-time visibility into Error, Access, and Audit log events 
+ to monitor and analyze MarkLogic logs with Splunk.
 
 The app includes:
 - Monitoring dashboard providing an overview of cluster activity and highlighting significant error events
 - Log file dashboards with filters for Error, Access, and Audit log fields
 - Pre-configured soucetypes and fields for MarkLogic Error, Access, and Audit log messages
-- Lookups configured with MarkLogic features, error codes, and log levels
+- Lookups configured with MarkLogic [features, error codes](https://docs.marklogic.com/guide/messages/intro), and [log levels](https://docs.marklogic.com/guide/admin/logfiles#id_37841)
 
 ## Configuration
 
@@ -39,7 +38,7 @@ Below are example stanzas that can be applied to your *inputs.conf* in order to 
     #index = marklogic
 
 ### Macros
-The MarkLogic monitoring dashboard queries make use of *macros* in order to construct base queries that target 
+The MarkLogic Monitoring dashboard queries make use of *macros* in order to construct base queries that target 
 MarkLogic log events from the MarkLogic sourcetypes for Error, Access, and Audit logs
 
 - *marklogic_index* - search criteria limited to `(index=main OR index=marklogic)`
@@ -50,8 +49,8 @@ MarkLogic log events from the MarkLogic sourcetypes for Error, Access, and Audit
 You can change these by modifying the *marklogic*, *marklogic_index*, *marklogic_error*, *marklogic_access*, 
 and *marklogic_audit* macros under *Settings > Advanced search > Search macros*.
 
-## Questions
-Contact **Mads Hansen** [mads.hansen@marklogic.com](mailto:mads.hansen@marklogic.com)
+## Getting Help
+Submit issues or feature requests at https://github.com/marklogic-community/marklogic-monitoring-for-splunk/issues 
 
 ## License
 
