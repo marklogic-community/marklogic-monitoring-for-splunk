@@ -9,12 +9,10 @@ MarkLogic Monitoring for Splunk provides configurations and pre-built dashboards
 ## Installation
 
 Install this app the same way you would install any Splunk app:
-<!-- 
-- Automatically from [SplunkBase](https://splunkbase.splunk.com/app/XXXX) 
-through *Browse more apps* 
--->
-- Manually: download the *marklogic.spl* file and install it in your Splunk instance
 
+- Automatically from [SplunkBase](https://splunkbase.splunk.com/app/4312/) 
+through *Browse more apps* 
+- Manually: download the *marklogic.spl* file and install it in your Splunk instance
 
 ## Configuration
 
