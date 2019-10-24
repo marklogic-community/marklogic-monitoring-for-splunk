@@ -688,6 +688,8 @@ SSL-NOMETHOD,SSL,neither SSLv3 nor TLS method is configured,,,https://docs.markl
 SSL-PKCS12ERROR,SSL,pkcs12 function returns error variable1,,,https://docs.marklogic.com/messages/SSL-en/SSL-PKCS12ERROR
 SVC-AWSCRED,SVC,No AWS security credentials are configured,,Configure them in the security section of the Admin GUI or using the Security API.,https://docs.marklogic.com/messages/SVC-en/SVC-AWSCRED
 SVC-AZURE,SVC,Azure error: variable1 variable2 variable3 variable4 variable5,,,https://docs.marklogic.com/messages/SVC-en/SVC-AZURE
+SVC-AZURE-ACCT,SVC,No Azure storage account specified,,Configure it in the security section of the Admin GUI or using the Security API. Or specify it in the path with '@' following the container.,https://docs.marklogic.com/messages/SVC-en/SVC-AZURE-ACCT
+SVC-AZURE-CRED,SVC,No Azure security credentials are configured,,Configure them in the security section of the Admin GUI or using the Security API. Or use Azure IAM.,https://docs.marklogic.com/messages/SVC-en/SVC-AZURE-CRED
 SVC-AZURE-PATH,SVC,Azure pathnames must begin with 'azure:/': 'variable1',,,https://docs.marklogic.com/messages/SVC-en/SVC-AZURE-PATH
 SVC-AZURE-SOCERR,SVC,Azure socket error: variable1 variable2 exception_stack,,,https://docs.marklogic.com/messages/SVC-en/SVC-AZURE-SOCERR
 SVC-AZURECRED,SVC,No Azure security credentials are configured,,Configure them in the security section of the Admin GUI or using the Security API.,https://docs.marklogic.com/messages/SVC-en/SVC-AZURECRED
@@ -2051,6 +2053,7 @@ XDMP-UNPATH,XDMP,Invalid format for unpath,xdmp:unpath function supports a subse
 XDMP-UNREGISTERED,XDMP,Query variable1 is not registered,,,https://docs.marklogic.com/messages/XDMP-en/XDMP-UNREGISTERED
 XDMP-UNSEARCHABLE,XDMP,Expression is unsearchable,,,https://docs.marklogic.com/messages/XDMP-en/XDMP-UNSEARCHABLE
 XDMP-UNSUPPORTED,XDMP,Unsupported,,,https://docs.marklogic.com/messages/XDMP-en/XDMP-UNSUPPORTED
+XDMP-UNSUPPORTED-DIALECT,XDMP,Dialect variable1 is not supported,Use of an out of date XQuery version.,Update your code.,https://docs.marklogic.com/messages/XDMP-en/XDMP-UNSUPPORTED-DIALECT
 XDMP-UNSUPPORTED-TYPE,XDMP,Unsupported lexicon type: variable1,The type of the lexicon input is not supported.,Correct your code.,https://docs.marklogic.com/messages/XDMP-en/XDMP-UNSUPPORTED-TYPE
 XDMP-UNSUPPORTED-TYPE-FIRST-ITEM,XDMP,Unsupported data type,The data type of the first item is not supported.,Correct your code.,https://docs.marklogic.com/messages/XDMP-en/XDMP-UNSUPPORTED-TYPE-FIRST-ITEM
 XDMP-UNSUPPORTEDLANGUAGE,XDMP,Number formatter doesn't support this language.,User has specified an unsupported language.,Use one of the supported languages.,https://docs.marklogic.com/messages/XDMP-en/XDMP-UNSUPPORTEDLANGUAGE
