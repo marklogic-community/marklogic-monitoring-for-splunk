@@ -21,8 +21,8 @@
       <search>
         <query>`marklogic_access`
           | stats count by status</query>
-        <earliest>$date-range.earliest$</earliest>
-        <latest>$date-range.latest$</latest>
+        <earliest>0</earliest>
+        <latest></latest>
       </search>
     </input>
     <input type="multiselect" token="method" searchWhenChanged="true">
@@ -38,8 +38,8 @@
       <search>
         <query>`marklogic_access`
           |  stats count by method</query>
-        <earliest>$date-range.earliest$</earliest>
-        <latest>$date-range.latest$</latest>
+        <earliest>0</earliest>
+        <latest></latest>
       </search>
     </input>
     <input type="multiselect" token="server_port" searchWhenChanged="true">
@@ -55,26 +55,22 @@
       <search>
         <query>`marklogic_access`
           |  stats count by server_port</query>
-        <earliest>$date-range.earliest$</earliest>
-        <latest>$date-range.latest$</latest>
+        <earliest>0</earliest>
+        <latest></latest>
       </search>
     </input>
     <input type="multiselect" token="host" searchWhenChanged="true">
       <label>Host</label>
-      <choice value="*">All</choice>
-      <default>*</default>
       <prefix>(</prefix>
       <suffix>)</suffix>
-      <valuePrefix>host=</valuePrefix>
       <delimiter> OR </delimiter>
       <fieldForLabel>host</fieldForLabel>
       <fieldForValue>host</fieldForValue>
       <search>
-        <query>`marklogic_access`
-          |  stats count by host</query>
-        <earliest>$date-range.earliest$</earliest>
-        <latest>$date-range.latest$</latest>
+        <query>| metasearch (sourcetype=marklogic_error OR sourcetype=marklogic_audit) host=* | stats count by host</query>
       </search>
+      <choice value="*">All</choice>
+      <default>*</default>
     </input>
     <input type="text" token="search" searchWhenChanged="true">
       <label>search</label>

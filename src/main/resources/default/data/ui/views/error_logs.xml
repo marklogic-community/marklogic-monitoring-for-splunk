@@ -1,7 +1,7 @@
 <form>
     <label>Error Logs</label>
     <fieldset submitButton="false" autoRun="true">
-        <input type="time" token="date" searchWhenChanged="true">
+        <input type="time" token="date-range" searchWhenChanged="true">
             <label></label>
             <default>
                 <earliest>-24h@h</earliest>
@@ -19,13 +19,10 @@
             <fieldForLabel>severity</fieldForLabel>
             <fieldForValue>severity</fieldForValue>
             <search>
-                <query>| inputlookup marklogic_severity
-                    | dedup severity</query>
-                <earliest>-24h@h</earliest>
-                <latest>now</latest>
+                <query>| inputlookup marklogic_severity | dedup severity</query>
             </search>
         </input>
-        <input type="multiselect" token="log_levels" searchWhenChanged="true">
+        <input type="multiselect" token="log_level" searchWhenChanged="true">
             <label>Log Level</label>
             <prefix>(</prefix>
             <suffix>)</suffix>
@@ -35,27 +32,35 @@
             <fieldForValue>log_level</fieldForValue>
             <search>
                 <query>| inputlookup marklogic_severity</query>
-                <earliest>$date-range.earliest$</earliest>
-                <latest>$date-range.latest$</latest>
             </search>
             <default>*</default>
             <choice value="*">All</choice>
         </input>
-        <input type="multiselect" token="features" searchWhenChanged="true">
+        <input type="multiselect" token="feature" searchWhenChanged="true">
             <label>Feature</label>
             <fieldForLabel>feature</fieldForLabel>
             <fieldForValue>feature</fieldForValue>
             <search>
-                <query>|inputlookup marklogic_feature
-                    |  dedup feature
-                    |  table feature</query>
-                <earliest>$date-range.earliest$</earliest>
-                <latest>$date-range.latest$</latest>
+                <query>|inputlookup marklogic_feature | dedup feature | table feature</query>
             </search>
             <prefix>(</prefix>
             <suffix>)</suffix>
             <valuePrefix>feature=</valuePrefix>
             <delimiter>  OR </delimiter>
+            <choice value="*">All</choice>
+            <default>*</default>
+        </input>
+        <input type="multiselect" token="host" searchWhenChanged="true">
+            <label>Host</label>
+            <prefix>(</prefix>
+            <suffix>)</suffix>
+            <valuePrefix>host=</valuePrefix>
+            <delimiter> OR </delimiter>
+            <fieldForLabel>host</fieldForLabel>
+            <fieldForValue>host</fieldForValue>
+            <search>
+                <query>| metasearch sourcetype=marklogic_error host=* | stats count by host</query>
+            </search>
             <choice value="*">All</choice>
             <default>*</default>
         </input>
@@ -69,11 +74,11 @@
             <single>
                 <title>Error Messages</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
                         | timechart count as Errors
-                        |  accum Errors</query>
-                    <earliest>$date.earliest$</earliest>
-                    <latest>$date.latest$</latest>
+                        | accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
                 </search>
                 <option name="colorBy">value</option>
                 <option name="colorMode">block</option>
@@ -91,10 +96,12 @@
             <single>
                 <title>Informational</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$ | where severity = "informational" |   timechart count as Errors
-                        |  accum Errors</query>
-                    <earliest>$date.earliest$</earliest>
-                    <latest>$date.latest$</latest>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | where severity = "informational"
+                        | timechart count as Errors
+                        | accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
                 </search>
                 <option name="colorBy">value</option>
                 <option name="colorMode">block</option>
@@ -109,10 +116,12 @@
             <single>
                 <title>Medium</title>
                 <search>
-                    <query>`marklogic_error`  $log_levels$ $features$ $severity$ $search$ | where severity = "medium" |   timechart count as Errors
-                        |  accum Errors</query>
-                    <earliest>$date.earliest$</earliest>
-                    <latest>$date.latest$</latest>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | where severity = "medium"
+                        | timechart count as Errors
+                        | accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
                 </search>
                 <option name="colorMode">block</option>
                 <option name="drilldown">all</option>
@@ -126,10 +135,12 @@
             <single>
                 <title>High</title>
                 <search>
-                    <query>`marklogic_error`  $log_levels$ $features$ $severity$ $search$ | where severity = "high" |   timechart count as Errors
-                        |  accum Errors</query>
-                    <earliest>$date.earliest$</earliest>
-                    <latest>$date.latest$</latest>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | where severity = "high"
+                        | timechart count as Errors
+                        | accum Errors</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
                 </search>
                 <option name="colorBy">value</option>
                 <option name="colorMode">block</option>
@@ -145,10 +156,12 @@
             <single>
                 <title>Critical</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$ | where severity = "critical" | timechart count as Errors
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | where severity = "critical"
+                        | timechart count as Errors
                         |  accum Errors</query>
-                    <earliest>$date.earliest$</earliest>
-                    <latest>$date.latest$</latest>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
                 </search>
                 <option name="colorBy">trend</option>
                 <option name="colorMode">block</option>
@@ -168,7 +181,8 @@
             <chart>
                 <title>By Severity</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$ | stats count by severity</query>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | stats count by severity</query>
                     <earliest>-24h@h</earliest>
                     <latest>now</latest>
                 </search>
@@ -188,7 +202,8 @@
             <chart>
                 <title>By Log Level</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$ | stats count by log_level</query>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | stats count by log_level</query>
                     <earliest>-24h@h</earliest>
                     <latest>now</latest>
                 </search>
@@ -202,7 +217,8 @@
             <chart>
                 <title>By Feature</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$ | stats count by feature</query>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | stats count by feature</query>
                     <earliest>-24h@h</earliest>
                     <latest>now</latest>
                 </search>
@@ -223,9 +239,10 @@
             <chart>
                 <title>Errors</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$ NOT XDMP-INMM* | timechart count by error_code usenull=f limit=0</query>
-                    <earliest>$date.earliest$</earliest>
-                    <latest>$date.latest$</latest>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$ NOT XDMP-INMM*
+                        | timechart count by error_code usenull=f limit=0</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
                 </search>
                 <option name="charting.axisTitleX.visibility">collapsed</option>
                 <option name="charting.axisY.scale">log</option>
@@ -243,7 +260,8 @@
         <panel>
             <chart>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ NOT XDMP-INMM* | timechart count by error_code</query>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ NOT XDMP-INMM*
+                        | timechart count by error_code</query>
                     <earliest>-24h@h</earliest>
                     <latest>now</latest>
                 </search>
@@ -266,9 +284,13 @@
             <table>
                 <title>Error Explanation and Response (click to view MarkLogic documentation)</title>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$
-                        |  dedup error_code | lookup marklogic_error error_code OUTPUTNEW error_description, error_cause, error_response, error_url | lookup marklogic_severity severity OUTPUTNEW severity_threshold  | sort -severity_threshold
-                        | table error_code, severity, error_cause, error_response | where error_response!=""</query>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | dedup error_code
+                        | lookup marklogic_error error_code OUTPUTNEW error_description, error_cause, error_response, error_url
+                        | lookup marklogic_severity severity OUTPUTNEW severity_threshold
+                        | sort -severity_threshold
+                        | table error_code, severity, error_cause, error_response
+                        | where error_response!=""</query>
                     <earliest>-24h@h</earliest>
                     <latest>now</latest>
                 </search>
@@ -284,7 +306,8 @@
         <panel>
             <event>
                 <search>
-                    <query>`marklogic_error` $log_levels$ $features$ $severity$ $search$ | table _time,_icon,error_code,severity,log_level,log_message</query>
+                    <query>`marklogic_error` $log_level$ $feature$ $severity$ $host$ $search$
+                        | table _time,_icon,error_code,severity,log_level,log_message</query>
                     <earliest>-24h@h</earliest>
                     <latest>now</latest>
                 </search>

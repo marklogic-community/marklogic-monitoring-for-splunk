@@ -8,14 +8,27 @@
                 <latest>now</latest>
             </default>
         </input>
+        <input type="multiselect" token="host" searchWhenChanged="true">
+            <label>Host</label>
+            <prefix>(</prefix>
+            <suffix>)</suffix>
+            <valuePrefix>host=</valuePrefix>
+            <delimiter> OR </delimiter>
+            <fieldForLabel>host</fieldForLabel>
+            <fieldForValue>host</fieldForValue>
+            <search>
+                <query>| metasearch (sourcetype=marklogic_error OR sourcetype=marklogic_audit) host=* | stats count by host</query>
+            </search>
+            <choice value="*">All</choice>
+            <default>*</default>
+        </input>
     </fieldset>
     <row>
         <panel>
             <single>
                 <title>Informational Severity Errors</title>
                 <search>
-                    <query>`marklogic_error` severity = "informational" |   timechart count as Errors
-                        |  accum Errors</query>
+                    <query>`marklogic_error` $host$ severity="informational" |   timechart count as Errors |  accum Errors</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -31,8 +44,7 @@
             <single>
                 <title>Medium Severity Errors</title>
                 <search>
-                    <query>`marklogic_error` severity = "medium" |   timechart count as Errors
-                        |  accum Errors</query>
+                    <query>`marklogic_error` $host$ severity="medium" |   timechart count as Errors |  accum Errors</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -48,8 +60,7 @@
             <single>
                 <title>High Severity Errors</title>
                 <search>
-                    <query>`marklogic_error` severity = "high" |   timechart count as Errors
-                        |  accum Errors</query>
+                    <query>`marklogic_error` $host$ severity="high" | timechart count as Errors |  accum Errors</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -67,8 +78,7 @@
             <single>
                 <title>Critical Severity Errors</title>
                 <search>
-                    <query>`marklogic_error` severity = "critical" | timechart count as Errors
-                        |  accum Errors</query>
+                    <query>`marklogic_error` $host$ severity="critical" | timechart count as Errors |  accum Errors</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -90,7 +100,7 @@
             <chart>
                 <title>Exceptions</title>
                 <search>
-                    <query>`marklogic_error` error_code=* NOT error_code=XDMP-INM*  |  timechart count by error_code usenull=f</query>
+                    <query>`marklogic_error` $host$ error_code=* NOT error_code=XDMP-INM* |  timechart count by error_code usenull=f</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                     <refresh>10m</refresh>
@@ -110,7 +120,7 @@
             <chart>
                 <title>Traffic by port</title>
                 <search>
-                    <query>`marklogic_access` |  timechart count by server_port</query>
+                    <query>`marklogic_access` $host$ |  timechart count by server_port</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -125,7 +135,7 @@
             <chart>
                 <title>Traffic by host</title>
                 <search>
-                    <query>`marklogic_access` |  timechart count(server_port) by host</query>
+                    <query>`marklogic_access` $host$ |  timechart count(server_port) by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -142,7 +152,7 @@
             <table>
                 <title>Performance: inefficient query or resource limit exceeded</title>
                 <search>
-                    <query>`marklogic_error` error_code="XDMP-LISTCACHEFULL" OR error_code="XDMP-EXPNTREECACHEFULL" OR error_code="SVC-MEMALLOC" | stats count by host</query>
+                    <query>`marklogic_error` $host$ error_code="XDMP-LISTCACHEFULL" OR error_code="XDMP-EXPNTREECACHEFULL" OR error_code="SVC-MEMALLOC" | stats count by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -154,7 +164,7 @@
             <chart>
                 <title>Deadlock or Timeout</title>
                 <search>
-                    <query>`marklogic_error` error_code="XDMP-DEADLOCK" OR error_code="SVC-EXTIME" | timechart count(eval(error_code="XDMP-DEADLOCK")) as Deadlock, count(eval(error_code="SVC-EXTIME")) as "Time limit exceeded" by host</query>
+                    <query>`marklogic_error` $host$ error_code="XDMP-DEADLOCK" OR error_code="SVC-EXTIME" | timechart count(eval(error_code="XDMP-DEADLOCK")) as Deadlock, count(eval(error_code="SVC-EXTIME")) as "Time limit exceeded" by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -173,7 +183,7 @@
             <table>
                 <title>Server start/stop/restart</title>
                 <search>
-                    <query>`marklogic_error` "Notice: Stopping" OR "Notice: Starting" OR "Notice: Restarting" NOT backup | chart count(eval("Notice: Stopping")) as Stop, count(eval("Notice: Starting")) as Start, count(eval("Notice: Restarting")) as Restart by host</query>
+                    <query>`marklogic_error` $host$ "Notice: Stopping" OR "Notice: Starting" OR "Notice: Restarting" NOT backup | chart count(eval("Notice: Stopping")) as Stop, count(eval("Notice: Starting")) as Start, count(eval("Notice: Restarting")) as Restart by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -185,7 +195,7 @@
             <table>
                 <title>Forest Mount Error</title>
                 <search>
-                    <query>`marklogic_error` "Info: Unmounted forest" OR "Info: Mounted forest" | stats count(eval("Info: Unmounted forest")) as cntUnmounted, count(eval("Info: Mounted forest")) as cntMounted by host</query>
+                    <query>`marklogic_error` $host$ "Info: Unmounted forest" OR "Info: Mounted forest" | stats count(eval("Info: Unmounted forest")) as cntUnmounted, count(eval("Info: Mounted forest")) as cntMounted by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -200,7 +210,7 @@
             <chart>
                 <title>Backup Error</title>
                 <search>
-                    <query>`marklogic_error` log_level="Error" "ScheduledBackupTask"   | timechart count  by host</query>
+                    <query>`marklogic_error` $host$ log_level="Error" "ScheduledBackupTask"   | timechart count  by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -212,7 +222,7 @@
             <table>
                 <title>Disk Full / Merge Issues</title>
                 <search>
-                    <query>`marklogic_error` "No space left on device" OR error_code="XDMP-MERGESPACE"  | chart count by host</query>
+                    <query>`marklogic_error` $host$ "No space left on device" OR error_code="XDMP-MERGESPACE"  | chart count by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -228,7 +238,7 @@
             <chart>
                 <title>Clock Skew</title>
                 <search>
-                    <query>`marklogic_error` "Excessive clock skew detected" OR error_code="XDMP-CLOCKSKEW" | timechart count by host</query>
+                    <query>`marklogic_error` $host$ "Excessive clock skew detected" OR error_code="XDMP-CLOCKSKEW" | timechart count by host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -252,7 +262,7 @@
             <table>
                 <title>Lagging Operations</title>
                 <search>
-                    <query>`marklogic_error` (severity="medium" OR severity="high" OR severity="critical") AND ("Canary thread" OR "journal frame took" OR "fast query timestamp") | table _time,severity,log_message,host |  sort -date, -_time</query>
+                    <query>`marklogic_error` $host$ (severity="medium" OR severity="high" OR severity="critical") AND ("Canary thread" OR "journal frame took" OR "fast query timestamp") | table _time,severity,log_message,host |  sort -date, -_time</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -268,7 +278,7 @@
             <table>
                 <title>Hung</title>
                 <search>
-                    <query>`marklogic_error` "Warning: Hung" OR "Debug: Hung"|  table _time,severity,log_message,host |  sort -date, -time</query>
+                    <query>`marklogic_error` $host$ "Warning: Hung" OR "Debug: Hung"|  table _time,severity,log_message,host |  sort -date, -time</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>
@@ -287,7 +297,7 @@
             <table>
                 <title>Socket Connect Error</title>
                 <search>
-                    <query>`marklogic_error` error_code="SVC-SOCCONN" | table _time,severity,log_message,host</query>
+                    <query>`marklogic_error` $host$ error_code="SVC-SOCCONN" | table _time,severity,log_message,host</query>
                     <earliest>$date-range.earliest$</earliest>
                     <latest>$date-range.latest$</latest>
                 </search>

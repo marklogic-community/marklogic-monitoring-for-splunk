@@ -48,6 +48,20 @@
         <latest>$date-range.latest$</latest>
       </search>
     </input>
+    <input type="multiselect" token="host" searchWhenChanged="true">
+      <label>Host</label>
+      <prefix>(</prefix>
+      <suffix>)</suffix>
+      <valuePrefix>host=</valuePrefix>
+      <delimiter> OR </delimiter>
+      <fieldForLabel>host</fieldForLabel>
+      <fieldForValue>host</fieldForValue>
+      <search>
+        <query>| metasearch (sourcetype=marklogic_error OR sourcetype=marklogic_audit) host=* | stats count by host</query>
+      </search>
+      <choice value="*">All</choice>
+      <default>*</default>
+    </input>
     <input type="text" token="search" searchWhenChanged="true">
       <label>Search</label>
       <default></default>
@@ -59,7 +73,7 @@
       <single>
         <title>successful events</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$| where success="true" |      timechart count as Success
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$| where success="true" |      timechart count as Success
             |  accum Success</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
@@ -77,7 +91,7 @@
       <single>
         <title>failure events</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$| where success="false" |    timechart count as Failure
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$| where success="false" |    timechart count as Failure
             |  accum Failure</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
@@ -94,7 +108,7 @@
       <chart>
         <title>By event</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | stats count by event</query>
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$ | stats count by event</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
         </search>
@@ -107,7 +121,7 @@
       <chart>
         <title>By user</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | stats count by user | sort -count</query>
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$ | stats count by user | sort -count</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
         </search>
@@ -120,7 +134,7 @@
       <chart>
         <title>By database</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | stats count by database</query>
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$ | stats count by database</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
         </search>
@@ -135,7 +149,7 @@
       <chart>
         <title>Failure Events</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$| where success="false" | timechart count by event</query>
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$| where success="false" | timechart count by event</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
         </search>
@@ -160,7 +174,7 @@
       <chart>
         <title>Events</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | timechart count by event</query>
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$ | timechart count by event</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
         </search>
@@ -179,7 +193,7 @@
       <table>
         <title>Events</title>
         <search>
-          <query>`marklogic_audit` $event$ $success$ $user$ $search$ | table _time,user,event,expr,success,database,user</query>
+          <query>`marklogic_audit` $event$ $success$ $user$ $host$ $search$ | table _time,user,event,expr,success,database,user</query>
           <earliest>$date-range.earliest$</earliest>
           <latest>$date-range.latest$</latest>
         </search>
