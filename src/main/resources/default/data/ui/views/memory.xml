@@ -1,0 +1,369 @@
+<form>
+    <label>Memory</label>
+    <fieldset submitButton="false" autoRun="true">
+        <input type
+                       ="time" token="date-range" searchWhenChanged="true">
+            <label></label>
+            <default>
+                <earliest>-24h@h</earliest>
+                <latest>now</latest>
+            </default>
+        </input>
+        <input type="multiselect" token="host" searchWhenChanged="true">
+            <label>Host</label>
+            <prefix>(</prefix>
+            <suffix>)</suffix>
+            <valuePrefix>host=</valuePrefix>
+            <delimiter> OR </delimiter>
+            <fieldForLabel>host</fieldForLabel>
+            <fieldForValue>host</fieldForValue>
+            <search>
+                <query>| metasearch (sourcetype=marklogic_error OR sourcetype=marklogic_audit) host=* | stats count by host</query>
+            </search>
+            <choice value="*">All</choice>
+            <default>*</default>
+        </input>
+        <input type="dropdown" token="aggregate" searchWhenChanged="true">
+            <label>Aggregate</label>
+            <choice value="avg">avg</choice>
+            <choice value="perc95">perc95</choice>
+            <choice value="max">max</choice>
+            <choice value="median">median</choice>
+            <choice value="min">min</choice>
+            <default>avg</default>
+        </input>
+    </fieldset>
+    <row>
+        <panel>
+            <single>
+                <title>Low Memory Warnings</title>
+                <search>
+                    <query>`marklogic_error` $host$  "Warning: Memory low"
+                        | timechart count as Warnings
+                        | accum Warnings</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="colorBy">trend</option>
+                <option name="colorMode">block</option>
+                <option name="drilldown">all</option>
+                <option name="rangeColors">["0x53a051","0xdc4e41"]</option>
+                <option name="rangeValues">[0]</option>
+                <option name="refresh.display">progressbar</option>
+                <option name="trellis.enabled">0</option>
+                <option name="trellis.size">medium</option>
+                <option name="trendColorInterpretation">inverse</option>
+                <option name="useColors">1</option>
+            </single>
+        </panel>
+        <panel>
+            <title>Forest + Cache % of physical</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Warning: Memory low"
+                        | rex field=_raw "forest\+cache=(?&lt;ForestCache>\d+)%phys"
+                        | timechart $aggregate$(ForestCache) as ForestCache by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>10m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Huge + Anon + Swap + File % of physical</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Warning: Memory low"
+                        | rex field=_raw "huge\+anon\+swap\+file=(?&lt;HugeAnonSwapFile>\d+)%phys"
+                        | timechart $aggregate$(HugeAnonSwapFile) as HugeAnonSwapFile by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>10m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Memory % Physical Used</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex "Info: Memory (?&lt;memory_pct>\d+)%"
+                        | timechart $aggregate$(memory_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Size %</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=size "(?&lt;size>\d+)\((?&lt;size_pct>\d+)%\)"
+                        | timechart $aggregate$(size_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>RSS %</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=rss "(?&lt;rss>\d+)\((?&lt;rss_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(rss_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Huge Pages % Used</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=huge "(?&lt;huge>\d+)\((?&lt;huge_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(huge_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Anon % of Physical</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=anon "(?&lt;anon>\d+)\((?&lt;anon_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(anon_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>File % of Physical</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=file "(?&lt;file>\d+)\((?&lt;file_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(file_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Forest % of Physical</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=forest "(?&lt;forest>\d+)\((?&lt;forest_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(forest_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+    </row>
+    <row>
+        <panel>
+            <title>Swap Used %</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=swap "(?&lt;swap>\d+)\((?&lt;swap_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(swap_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Unclosed %</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=unclosed "(?&lt;unclosed>\d+)\((?&lt;unclosed_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(unclosed_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Cache %</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=cache "(?&lt;cache>\d+)\((?&lt;cache_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(cache_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Registry %</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=registry "(?&lt;registry>\d+)\((?&lt;registry_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(registry_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+        <panel>
+            <title>Join %</title>
+            <chart>
+                <search>
+                    <query>`marklogic_error` $host$ "Info: Memory"
+                        | rex field=join "(?&lt;join>\d+)\((?&lt;join_pct>\d+)%\)"
+                        | fillnull value=0
+                        | timechart $aggregate$(join_pct) by host limit=0 useother=false</query>
+                    <earliest>$date-range.earliest$</earliest>
+                    <latest>$date-range.latest$</latest>
+                    <refresh>5m</refresh>
+                    <refreshType>delay</refreshType>
+                </search>
+                <option name="charting.chart">line</option>
+                <option name="charting.chart.nullValueMode">connect</option>
+                <option name="charting.drilldown">all</option>
+                <option name="refresh.display">progressbar</option>
+                <drilldown>
+                    <set token="form.host">$click.name2$</set>
+                </drilldown>
+            </chart>
+        </panel>
+    </row>
+</form>
