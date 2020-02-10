@@ -5,7 +5,7 @@ import sun.misc.BASE64Encoder
 plugins {
     id 'base'
     id 'net.saliman.properties' version '1.5.1'
-    id 'com.marklogic.ml-gradle' version '3.17.0'
+    id 'com.marklogic.ml-gradle' version '4.0.0'
 }
 
 class GenerateLookups extends com.marklogic.gradle.task.MarkLogicTask {
