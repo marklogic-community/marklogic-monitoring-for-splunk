@@ -1,6 +1,5 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 import com.marklogic.client.DatabaseClient
-import sun.misc.BASE64Encoder
 
 plugins {
     id 'base'
@@ -104,9 +103,8 @@ def addAuthorizationToken(connection, token){
 
 def appInpsectLogin() {
     def connection = buildAppInspectConnection( 'https://api.splunk.com/2.0/rest/login/splunk', 'GET')
-    BASE64Encoder enc = new sun.misc.BASE64Encoder();
     String userpassword = project.appInspectUsername + ':' + project.appInspectPassword;
-    String encodedAuthorization = enc.encode( userpassword.getBytes() );
+    String encodedAuthorization = new String(java.util.Base64.getMimeEncoder().encode( userpassword.getBytes() ), StandardCharsets.UTF_8);
     connection.setRequestProperty('Authorization', 'Basic ' + encodedAuthorization);
     new groovy.json.JsonSlurper().parse(connection.getInputStream())
 }
