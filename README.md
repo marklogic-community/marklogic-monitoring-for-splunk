@@ -1,7 +1,7 @@
 # MarkLogic Monitoring for Splunk
 
-MarkLogic Monitoring for Splunk provides configurations and pre-built dashboards that deliver real-time visibility into Error, Access, and Audit log events 
- to monitor and analyze MarkLogic logs with Splunk.
+MarkLogic Monitoring for Splunk provides configurations and pre-built dashboards that deliver real-time visibility into Error, Access, Request, 
+and Audit log events to monitor and analyze MarkLogic logs with Splunk.
 
 ![Monitoring dashboard](src/main/resources/appserver/static/screenshot.png "Monitoring dashboard")
 
@@ -50,6 +50,7 @@ MarkLogic log events from the MarkLogic sourcetypes for Error, Access, and Audit
 - *marklogic_access* - restricts searches to the MarkLogic *_AccessLog.txt events
 - *marklogic_audit* - restricts searches to the MarkLogic AuditLog.txt events
 - *marklogic_error* - restricts searches to the *ErrorLog.txt events
+- *marklogic_request* - restricts searches to the *_RequestrLog.txt events
 
 You can change these by modifying the *marklogic*, *marklogic_index*, *marklogic_error*, *marklogic_access*, 
 and *marklogic_audit* macros under *Settings > Advanced search > Search macros*.
