@@ -46,7 +46,7 @@ Below are example stanzas that can be applied to your *inputs.conf* in order to 
 The MarkLogic Monitoring dashboard queries make use of *macros* in order to construct base queries that target 
 MarkLogic log events from the MarkLogic sourcetypes for Error, Access, and Audit logs
 
-- *marklogic_index* - search criteria limited to `(index=main OR index=marklogic)`
+- *marklogic_index* - search criteria limited to `(index=default OR index=main OR index=marklogic)`
 - *marklogic_access* - restricts searches to the MarkLogic *_AccessLog.txt events
 - *marklogic_audit* - restricts searches to the MarkLogic AuditLog.txt events
 - *marklogic_error* - restricts searches to the *ErrorLog.txt events
