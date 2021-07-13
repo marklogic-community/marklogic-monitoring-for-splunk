@@ -4,7 +4,7 @@ import com.marklogic.client.DatabaseClient
 plugins {
     id 'base'
     id 'net.saliman.properties' version '1.5.1'
-    id 'com.marklogic.ml-gradle' version '4.1.1'
+    id 'com.marklogic.ml-gradle' version '4.2.0'
 }
 
 class GenerateLookups extends com.marklogic.gradle.task.MarkLogicTask {
