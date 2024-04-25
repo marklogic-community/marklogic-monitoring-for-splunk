@@ -1,11 +1,11 @@
-<form>
+<form version="1.1">
   <label>Backups</label>
   <fieldset submitButton="false" autoRun="true">
     <input type="time" token="date-range" searchWhenChanged="true">
       <label></label>
       <default>
-        <earliestTime>-30d</earliestTime>
-        <latestTime></latestTime>
+        <earliest>-30d</earliest>
+        <latest></latest>
       </default>
     </input>
   </fieldset>
