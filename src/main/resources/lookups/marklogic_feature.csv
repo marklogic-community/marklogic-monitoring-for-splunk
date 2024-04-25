@@ -7,8 +7,10 @@ DHF,Microsoft Office document converter
 DLS,Library Services
 FLEXREP,Flexible Replication
 HADOOP,MarkLogic Server integrations with Hadoop
+HEALTH,MarkLogic Health
 ICN,PDF document converter
 JS,Server-Side JavaScript
+JSEARCH,MarkLogic JavaScript Search library
 MANAGE,REST Management API
 OI,Stellent Outside In document converter
 OPTIC,Optic API

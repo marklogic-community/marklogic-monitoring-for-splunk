@@ -1,20 +1,24 @@
 import org.apache.tools.ant.filters.ReplaceTokens
 import com.marklogic.client.DatabaseClient
-import sun.misc.BASE64Encoder
 
 plugins {
     id 'base'
     id 'net.saliman.properties' version '1.5.1'
-    id 'com.marklogic.ml-gradle' version '3.16.2'
+    id 'com.marklogic.ml-gradle' version '4.5.3'
 }
 
 class GenerateLookups extends com.marklogic.gradle.task.MarkLogicTask {
+    @Input
     String modulesDir = 'src/main/ml-modules/'
+    @Input
     String featureQuery = new File("${modulesDir}get-marklogic-features.xqy").getText('UTF-8')
+    @Input
     String errorQuery = new File("${modulesDir}get-marklogic-error-codes.xqy").getText('UTF-8')
-
+    @Input
     String lookupsDir = 'src/main/resources/lookups/'
+    @Input
     String featureFile = 'marklogic_feature.csv'
+    @Input
     String errorFile = 'marklogic_error.csv'
 
     @TaskAction
@@ -104,9 +108,8 @@ def addAuthorizationToken(connection, token){
 
 def appInpsectLogin() {
     def connection = buildAppInspectConnection( 'https://api.splunk.com/2.0/rest/login/splunk', 'GET')
-    BASE64Encoder enc = new sun.misc.BASE64Encoder();
     String userpassword = project.appInspectUsername + ':' + project.appInspectPassword;
-    String encodedAuthorization = enc.encode( userpassword.getBytes() );
+    String encodedAuthorization = new String(java.util.Base64.getMimeEncoder().encode( userpassword.getBytes() ), java.nio.charset.StandardCharsets.UTF_8);
     connection.setRequestProperty('Authorization', 'Basic ' + encodedAuthorization);
     new groovy.json.JsonSlurper().parse(connection.getInputStream())
 }

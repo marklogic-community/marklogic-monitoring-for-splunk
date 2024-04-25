@@ -14,7 +14,11 @@ declare function local:cell($val) {
 string-join(
   (
     "feature,feature_description",
-    let $feature-doc := xdmp:http-get("http://docs.marklogic.com/guide/messages/intro")
+    let $feature-doc := xdmp:http-get("https://docs.marklogic.com/guide/messages/intro",
+        <options xmlns="xdmp:http">
+          <verify-cert>false</verify-cert>
+        </options>
+    )
     let $rows := xdmp:unquote($feature-doc[2])/html:html/html:body/*//html:div[html:p/html:a/@id="id_pgfId-1059358"]/html:table[@class="api_generic_table"]/html:tr[html:td]
     return (
       for $row in $rows

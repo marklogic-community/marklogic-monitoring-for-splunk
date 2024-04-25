@@ -18,9 +18,14 @@ string-join(
     (
       "error_code,feature,error_description,error_cause,error_response,error_url",
 
-      for $feature in tokenize($FEATURES, ",")
-      let $error-doc := xdmp:http-get("http://docs.marklogic.com/guide/messages/"||$feature||"-en?print=yes")
+      for $feature in distinct-values((tokenize($FEATURES, ","), "HEALTH", "JSEARCH"))
+      let $error-doc := xdmp:http-get("https://docs.marklogic.com/guide/messages/"||$feature||"-en?print=yes",
+          <options xmlns="xdmp:http">
+            <verify-cert>false</verify-cert>
+          </options>
+      )
       let $content := xdmp:unquote($error-doc[2])/html:html/html:body/*/*/html:div[@class="message"]
+      order by $feature
       return (
         for $message in $content
         let $code := $message/html:h3/html:a/string()
